@@ -12,42 +12,27 @@
 <body>
   <h1>Process Checklist</h1>
   <div id="content">Loading...</div>
+
   <script>
-    const apiUrl = 'https://script.google.com/macros/s/AKfycbyPzJ06ey4B2dUPlmODzmvh8dHxAoGS3KlOM3TKir4jiNeGupZ9asOVev4kEnLEGTao/exec';
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-n5cBUDYXJ1WySAb2LezIXXfxODrlmXyS-fDAkdVfANGztRFUhfRcMWj56JB96XRCVlFFGCLt876y/pub?gid=1475439125&single=true&output=csv";
 
-    fetch(apiUrl)
-      .then(res => res.json())
-      .then(data => {
-        let html = `<h2>${data.processName}</h2><form id="checklist">`;
+    fetch(csvUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.trim().split('\n').map(row => row.split(','));
+        const headers = rows[0];
+        const content = rows.slice(1); // skip header
 
-        data.steps.forEach((step, i) => {
-          html += `<h3>Step ${i + 1}: ${step.stepName}</h3>`;
-          step.subparts.forEach((item, j) => {
-            const id = `s${i}_i${j}`;
-            html += `<label><input type="checkbox" id="${id}"> ${item}</label>`;
+        let html = `<form id="checklist">`;
+        headers.forEach((header, colIndex) => {
+          html += `<h3>${header}</h3>`;
+          content.forEach(row => {
+            const item = row[colIndex];
+            if (item) {
+              const id = `col${colIndex}_${item.replace(/\s+/g, '_')}`;
+              html += `<label><input type="checkbox" id="${id}"> ${item}</label>`;
+            }
           });
         });
-
         html += `<button type="submit">Submit</button></form>`;
-        document.getElementById('content').innerHTML = html;
-
-        document.getElementById("checklist").addEventListener("submit", function(e) {
-          e.preventDefault();
-          localStorage.setItem("checklist_submitted", "yes");
-          alert("Checklist submitted. You cannot edit it anymore.");
-          disableForm();
-        });
-
-        if (localStorage.getItem("checklist_submitted") === "yes") {
-          disableForm();
-        }
-
-        function disableForm() {
-          const checkboxes = document.querySelectorAll("input[type=checkbox]");
-          checkboxes.forEach(cb => cb.disabled = true);
-          document.querySelector("button").disabled = true;
-        }
-      });
-  </script>
-</body>
-</html>
+        document.getElementById("content").innerHTML = html;
