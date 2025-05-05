@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Process Checklist</title>
+  <title>CSV Table Viewer</title>
   <style>
     body { font-family: sans-serif; margin: 20px; }
-    h2 { margin-top: 30px; }
-    label { display: block; margin: 5px 0; }
-    button { margin-top: 20px; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
   </style>
 </head>
 <body>
-  <h1>Process Checklist</h1>
-  <div id="content">Loading...</div>
+  <h1>CSV Data Table</h1>
+  <table id="csv-table"></table>
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-n5cBUDYXJ1WySAb2LezIXXfxODrlmXyS-fDAkdVfANGztRFUhfRcMWj56JB96XRCVlFFGCLt876y/pub?gid=1475439125&single=true&output=csv";
@@ -19,20 +19,19 @@
     fetch(csvUrl)
       .then(res => res.text())
       .then(csv => {
-        const rows = csv.trim().split('\n').map(row => row.split(','));
-        const headers = rows[0];
-        const content = rows.slice(1); // skip header
+        const rows = csv.trim().split("\n").map(row => row.split(","));
+        const table = document.getElementById("csv-table");
 
-        let html = `<form id="checklist">`;
-        headers.forEach((header, colIndex) => {
-          html += `<h3>${header}</h3>`;
-          content.forEach(row => {
-            const item = row[colIndex];
-            if (item) {
-              const id = `col${colIndex}_${item.replace(/\s+/g, '_')}`;
-              html += `<label><input type="checkbox" id="${id}"> ${item}</label>`;
-            }
+        rows.forEach((row, i) => {
+          const tr = document.createElement("tr");
+          row.forEach(cell => {
+            const td = document.createElement(i === 0 ? "th" : "td");
+            td.textContent = cell;
+            tr.appendChild(td);
           });
+          table.appendChild(tr);
         });
-        html += `<button type="submit">Submit</button></form>`;
-        document.getElementById("content").innerHTML = html;
+      });
+  </script>
+</body>
+</html>
