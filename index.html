@@ -80,6 +80,20 @@
     tr:hover {
       background-color: #f3f4f6;
     }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
   </style>
 
   <!-- DataTables CSS -->
@@ -109,6 +123,7 @@
         <thead></thead>
         <tbody></tbody>
       </table>
+      <button onclick="submitUpdates()">Save Changes</button>
     </div>
   </main>
 
@@ -140,9 +155,23 @@
 
         data.forEach(row => {
           const tr = document.createElement("tr");
-          row.forEach(cell => {
+          row.forEach((cell, i) => {
             const td = document.createElement("td");
-            td.textContent = cell;
+
+            if (headers[i] === "Status") {
+              const select = document.createElement("select");
+              ["To Do", "In Progress", "Completed"].forEach(optionText => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.text = optionText;
+                if (cell === optionText) option.selected = true;
+                select.appendChild(option);
+              });
+              td.appendChild(select);
+            } else {
+              td.textContent = cell;
+            }
+
             tr.appendChild(td);
           });
           tbody.appendChild(tr);
@@ -187,6 +216,31 @@
         }
       });
       dataTable.draw();
+    }
+
+    function submitUpdates() {
+      const rows = document.querySelectorAll("#csv-table tbody tr");
+      const updates = [];
+
+      rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+        const statusSelect = cells[3].querySelector("select"); // Assuming Status is in the 4th column
+        const id = cells[0].textContent; // Assuming ID is in the 1st column
+        if (statusSelect) {
+          updates.push({ id, status: statusSelect.value });
+        }
+      });
+
+      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
+        method: "POST",
+        body: JSON.stringify(updates),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.json())
+      .then(data => alert("Statuses updated!"))
+      .catch(err => console.error("Error updating:", err));
     }
   </script>
 </body>
