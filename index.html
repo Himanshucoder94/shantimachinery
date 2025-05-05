@@ -80,23 +80,8 @@
     tr:hover {
       background-color: #f3f4f6;
     }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
   </style>
-
-  <!-- DataTables CSS -->
+  
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 </head>
 <body>
@@ -123,11 +108,9 @@
         <thead></thead>
         <tbody></tbody>
       </table>
-      <button onclick="submitUpdates()">Save Changes</button>
     </div>
   </main>
 
-  <!-- jQuery + DataTables -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
@@ -155,30 +138,34 @@
 
         data.forEach(row => {
           const tr = document.createElement("tr");
-          row.forEach((cell, i) => {
+          row.forEach(cell => {
             const td = document.createElement("td");
-
-            if (headers[i] === "Status") {
-              const select = document.createElement("select");
-              ["To Do", "In Progress", "Completed"].forEach(optionText => {
-                const option = document.createElement("option");
-                option.value = optionText;
-                option.text = optionText;
-                if (cell === optionText) option.selected = true;
-                select.appendChild(option);
-              });
-              td.appendChild(select);
-            } else {
-              td.textContent = cell;
-            }
-
+            td.textContent = cell;
             tr.appendChild(td);
           });
+
+          // Add a dropdown for status in the Status column
+          const statusCell = tr.cells[3];
+          const select = document.createElement("select");
+          ["To Do", "In Progress", "Completed"].forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = status;
+            select.appendChild(option);
+          });
+
+          // Set the current status value
+          select.value = row[3]; // Assuming the current status is in the 4th column (index 3)
+
+          statusCell.innerHTML = "";  // Clear the existing content
+          statusCell.appendChild(select);  // Add the select dropdown
+
           tbody.appendChild(tr);
         });
 
         dataTable = $('#csv-table').DataTable();
 
+        // Add listeners for priority and status filters
         populateFilter("priorityFilter", headers, data, "Priority");
         populateFilter("statusFilter", headers, data, "Status");
 
@@ -224,13 +211,15 @@
 
       rows.forEach(row => {
         const cells = row.querySelectorAll("td");
-        const statusSelect = cells[3].querySelector("select"); // Assuming Status is in the 4th column
-        const id = cells[0].textContent; // Assuming ID is in the 1st column
+        const statusSelect = cells[3].querySelector("select"); // Assuming Status is in the 4th column (index 3)
+        const taskId = cells[5].textContent; // Assuming Task Title is in the 6th column (index 5)
+        
         if (statusSelect) {
-          updates.push({ id, status: statusSelect.value });
+          updates.push({ id: taskId, status: statusSelect.value });
         }
       });
 
+      // Send POST request to update the statuses
       fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
         method: "POST",
         body: JSON.stringify(updates),
@@ -238,8 +227,8 @@
           "Content-Type": "application/json"
         }
       })
-      .then(res => res.json())
-      .then(data => alert("Statuses updated!"))
+      .then(res => res.text())
+      .then(data => alert(data))  // Show the success message
       .catch(err => console.error("Error updating:", err));
     }
   </script>
