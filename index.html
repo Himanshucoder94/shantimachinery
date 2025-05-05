@@ -1,17 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CSV Table Viewer</title>
+  <title>CSV Table Viewer with Search</title>
+  <meta charset="utf-8">
   <style>
     body { font-family: sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border: 1px solid #ccc; }
     th { background-color: #f2f2f2; }
   </style>
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 </head>
 <body>
-  <h1>CSV Data Table</h1>
-  <table id="csv-table"></table>
+  <h1>Process Table</h1>
+  <table id="csv-table">
+    <thead></thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- jQuery and DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-n5cBUDYXJ1WySAb2LezIXXfxODrlmXyS-fDAkdVfANGztRFUhfRcMWj56JB96XRCVlFFGCLt876y/pub?gid=1475439125&single=true&output=csv";
@@ -19,18 +29,34 @@
     fetch(csvUrl)
       .then(res => res.text())
       .then(csv => {
-        const rows = csv.trim().split("\n").map(row => row.split(","));
-        const table = document.getElementById("csv-table");
+        const rows = csv.trim().split("\n").map(r => r.split(","));
+        const [headers, ...data] = rows;
 
-        rows.forEach((row, i) => {
+        const thead = document.querySelector("#csv-table thead");
+        const tbody = document.querySelector("#csv-table tbody");
+
+        // Build table headers
+        const headerRow = document.createElement("tr");
+        headers.forEach(h => {
+          const th = document.createElement("th");
+          th.textContent = h;
+          headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+
+        // Build table rows
+        data.forEach(row => {
           const tr = document.createElement("tr");
           row.forEach(cell => {
-            const td = document.createElement(i === 0 ? "th" : "td");
+            const td = document.createElement("td");
             td.textContent = cell;
             tr.appendChild(td);
           });
-          table.appendChild(tr);
+          tbody.appendChild(tr);
         });
+
+        // Activate DataTables
+        $('#csv-table').DataTable();
       });
   </script>
 </body>
