@@ -4,84 +4,10 @@
   <title>Shanti Machinery Works - Work List</title>
   <meta charset="utf-8">
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f9fafb;
-      color: #333;
-    }
-
-    h1 {
-      background-color: #1e40af;
-      color: white;
-      padding: 20px;
-      margin: 0;
-    }
-
-    main {
-      display: flex;
-      padding: 20px;
-      gap: 20px;
-    }
-
-    #filters {
-      width: 220px;
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    #filters h3 {
-      margin-top: 0;
-      color: #1e40af;
-    }
-
-    #filters label {
-      display: block;
-      margin-bottom: 15px;
-      font-weight: bold;
-    }
-
-    #filters select {
-      width: 100%;
-      padding: 6px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      margin-top: 5px;
-    }
-
-    #table-container {
-      flex-grow: 1;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    th, td {
-      padding: 10px;
-      text-align: left;
-      border-bottom: 1px solid #eee;
-    }
-
-    th {
-      background-color: #e0e7ff;
-      color: #1e3a8a;
-      font-weight: bold;
-    }
-
-    tr:hover {
-      background-color: #f3f4f6;
-    }
+    /* Your previous CSS styles */
   </style>
-  
+
+  <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 </head>
 <body>
@@ -108,6 +34,11 @@
         <thead></thead>
         <tbody></tbody>
       </table>
+    </div>
+
+    <!-- Save Changes Button -->
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="saveChangesBtn">Save Changes</button>
     </div>
   </main>
 
@@ -205,6 +136,9 @@
       dataTable.draw();
     }
 
+    // Save changes when the button is clicked
+    document.getElementById("saveChangesBtn").addEventListener("click", submitUpdates);
+
     function submitUpdates() {
       const rows = document.querySelectorAll("#csv-table tbody tr");
       const updates = [];
@@ -220,7 +154,7 @@
       });
 
       // Send POST request to update the statuses
-      fetch("https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec", {
+      fetch("https://script.google.com/macros/s/AKfycbwXhkVFy9HFVG_-DB7M8k_nVcZ2zFuduXloC7uUqRgaiD7EOLqSbpjfMnux9GilAlk/exec", {
         method: "POST",
         body: JSON.stringify(updates),
         headers: {
