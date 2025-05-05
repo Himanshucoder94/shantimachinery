@@ -1,30 +1,72 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>CSV Table Viewer with Search</title>
+  <title>Process Table with Filters</title>
   <meta charset="utf-8">
   <style>
-    body { font-family: sans-serif; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px; border: 1px solid #ccc; }
-    th { background-color: #f2f2f2; }
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    #filters {
+      width: 200px;
+    }
+    #filters label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    #table-container {
+      flex-grow: 1;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
   </style>
   <!-- DataTables CSS -->
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 </head>
 <body>
-  <h1>Work List</h1>
-  <table id="csv-table">
-    <thead></thead>
-    <tbody></tbody>
-  </table>
+  <div id="filters">
+    <h3>Filters</h3>
+    <label>
+      Priority:
+      <select id="priorityFilter">
+        <option value="">All</option>
+      </select>
+    </label>
+    <label>
+      Status:
+      <select id="statusFilter">
+        <option value="">All</option>
+      </select>
+    </label>
+  </div>
 
-  <!-- jQuery and DataTables JS -->
+  <div id="table-container">
+    <table id="csv-table">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- jQuery + DataTables -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-n5cBUDYXJ1WySAb2LezIXXfxODrlmXyS-fDAkdVfANGztRFUhfRcMWj56JB96XRCVlFFGCLt876y/pub?gid=1475439125&single=true&output=csv";
+
+    let dataTable;
 
     fetch(csvUrl)
       .then(res => res.text())
@@ -35,7 +77,6 @@
         const thead = document.querySelector("#csv-table thead");
         const tbody = document.querySelector("#csv-table tbody");
 
-        // Build table headers
         const headerRow = document.createElement("tr");
         headers.forEach(h => {
           const th = document.createElement("th");
@@ -44,7 +85,6 @@
         });
         thead.appendChild(headerRow);
 
-        // Build table rows
         data.forEach(row => {
           const tr = document.createElement("tr");
           row.forEach(cell => {
@@ -55,9 +95,46 @@
           tbody.appendChild(tr);
         });
 
-        // Activate DataTables
-        $('#csv-table').DataTable();
+        dataTable = $('#csv-table').DataTable();
+
+        populateFilter("priorityFilter", headers, data, "Priority");
+        populateFilter("statusFilter", headers, data, "Status");
+
+        document.getElementById("priorityFilter").addEventListener("change", applyFilters);
+        document.getElementById("statusFilter").addEventListener("change", applyFilters);
       });
+
+    function populateFilter(filterId, headers, data, columnName) {
+      const index = headers.indexOf(columnName);
+      if (index === -1) return;
+
+      const values = [...new Set(data.map(row => row[index]))].filter(Boolean).sort();
+      const select = document.getElementById(filterId);
+      values.forEach(val => {
+        const option = document.createElement("option");
+        option.value = val;
+        option.textContent = val;
+        select.appendChild(option);
+      });
+    }
+
+    function applyFilters() {
+      const priority = document.getElementById("priorityFilter").value.toLowerCase();
+      const status = document.getElementById("statusFilter").value.toLowerCase();
+
+      dataTable.columns().every(function (i) {
+        const header = dataTable.column(i).header().textContent.toLowerCase();
+
+        if (header === "priority") {
+          this.search(priority);
+        } else if (header === "status") {
+          this.search(status);
+        } else {
+          this.search('');
+        }
+      });
+      dataTable.draw();
+    }
   </script>
 </body>
 </html>
